@@ -47,11 +47,18 @@ str_cli(FILE *fp,int sockfd)
 
         while (fgets(sendline,MAXLINE, fp) != NULL) {
                 write(sockfd, sendline, strlen(sendline));
-		if (readline(sockfd, recvline, MAXLINE) == 0) {
-			printf("str_cli:server terminated prematurely.\n");
-                        exit(1);
+                //printf("readline=%s\n",readline);
+                while(readline(sockfd, recvline, MAXLINE)){
+                        printf("in readline while\n");
+		        /*if (readline(sockfd, recvline, MAXLINE) == 0) {
+			        printf("str_cli:server terminated prematurely.\n");
+                                exit(1);
+                        }*/
+		        fputs(recvline, stdout);
+                        printf("\n");
+                        //printf("in readline while1\n");
                 }
-		fputs(recvline, stdout);
+
         }
 }
 /*end str_cli */
@@ -59,8 +66,8 @@ str_cli(FILE *fp,int sockfd)
 ssize_t
 readline(int fd, void *vptr, size_t maxlen)
 {
-        int             n, rc;
-        char    c, *ptr;
+        int n, rc;
+        char c, *ptr;
 
         ptr = vptr;
         for (n = 1; n < maxlen; n++) {
@@ -85,9 +92,9 @@ readline(int fd, void *vptr, size_t maxlen)
 static ssize_t
 my_read(int fd, char *ptr)
 {
-        static int      read_cnt = 0;
-        static char     *read_ptr;
-        static char     read_buf[MAXLINE];
+        static int read_cnt = 0;
+        static char *read_ptr;
+        static char read_buf[MAXLINE];
 
         if (read_cnt <= 0) {
 again:

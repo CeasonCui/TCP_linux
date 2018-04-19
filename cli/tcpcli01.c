@@ -31,37 +31,107 @@ main(int argc, char **argv)
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(SERV_PORT);
     inet_pton(AF_INET, argv[1], &servaddr.sin_addr);
-    if (connect(sockfd, (SA *)&servaddr, sizeof(servaddr)) < 0) {
-        printf("connect error.\n");
-        exit(1);
-    }
+    while(1){
+        if (connect(sockfd, (SA *)&servaddr, sizeof(servaddr)) < 0) {
+                printf("connect error.\n");
+                exit(1);
+        }
 
-    str_cli(stdin, sockfd);
-    exit(0);
+        str_cli(stdin, sockfd);
+        exit(0);
+    }
 }   
+
+
 
 void
 str_cli(FILE *fp,int sockfd)
 {
-        char sendline[MAXLINE], recvline[MAXLINE];
-
+        ssize_t  n;
+        char sendline[MAXLINE], recvline[MAXLINE+1];
+       
         while (fgets(sendline,MAXLINE, fp) != NULL) {
-                write(sockfd, sendline, strlen(sendline));
-                //printf("readline=%s\n",readline);
-                while(readline(sockfd, recvline, MAXLINE)){
-                        printf("in readline while\n");
-		        /*if (readline(sockfd, recvline, MAXLINE) == 0) {
+               // while(1){
+                        write(sockfd, sendline, strlen(sendline));
+                        file_updown(sendline,sockfd);
+                        if (n = read(sockfd, recvline, MAXLINE) == 0) {
 			        printf("str_cli:server terminated prematurely.\n");
                                 exit(1);
-                        }*/
-		        fputs(recvline, stdout);
-                        printf("\n");
-                        //printf("in readline while1\n");
-                }
-
+                        }
+  
+                int i=0;
+		fputs(recvline, stdout);
+                printf("\n");
+                //}
+                
         }
 }
 /*end str_cli */
+
+void
+file_updown(char *sendline,int sockfd,char *recvline){
+        const char *s="1\n";
+	const char *s2="2\n";
+	const char *s3="resent.";
+        char file_name[256];
+        char buffer[MAXLINE+1];
+	char filebuffer[8000];
+        if(*sendline=='3'){
+		char file_name_up[256];
+		bzero(file_name_up,256);
+		for(int i=1;sendline[i]!='\n';i++){
+			file_name_up[i-1]=sendline[i];
+		}
+		printf("filename:%s\n",file_name_up);
+		FILE *fp1=fopen(file_name_up,"r");
+		if(fp1==NULL){
+			printf("FILE:%s Not Found\n",file_name_up);
+		}
+		else{
+			write(sockfd, sendline, strlen(sendline));
+			bzero(filebuffer,0);
+			int length=0;
+			length = fread(filebuffer,sizeof(char),8000,fp1);
+						//printf("length=%d\n",length);
+						
+				if(write(sockfd,filebuffer,length)<0){
+					printf("Send File:%s Failed.\n",file_name_up);
+					break;
+				}
+				fputs(filebuffer, stdout);
+				bzero(filebuffer,8000);
+			fclose(fp1);
+			printf("File:%s Transfer Successful!\n",file_name_up);
+		}		
+	}
+	else{
+		if(*sendline=='2'){
+			        for(int i=1;sendline[i]!='\n';i++){
+			                file_name[i-1]=sendline[i];
+                                }
+			bzero(buffer,MAXLINE+1);
+			int length=0;
+		        length=read(sockfd, buffer, MAXLINE);
+                        FILE *fp=fopen(file_name,"w");
+			if(fp==NULL){
+				printf("file can not open\n");
+				exit(1);
+			}
+			if(fwrite(buffer,sizeof(char),length,fp)<length){
+				printf("file write faile\n");
+			}
+			fputs(buffer, stdout);
+			bzero(buffer,MAXLINE+1);
+			//fputs(buffer,stdout);
+				
+		
+		        //write(sockfd, sendline, strlen(sendline));
+                        fclose(fp);
+                        printf("receive file successful\n");
+                        }
+			//if(sendline=)
+                } 			
+	}
 
 ssize_t
 readline(int fd, void *vptr, size_t maxlen)

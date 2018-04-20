@@ -96,7 +96,6 @@ file_updown(char *sendline,int sockfd,char *recvline){
 						
 				if(write(sockfd,filebuffer,length)<0){
 					printf("Send File:%s Failed.\n",file_name_up);
-					break;
 				}
 				fputs(filebuffer, stdout);
 				bzero(filebuffer,8000);

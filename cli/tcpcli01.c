@@ -53,7 +53,8 @@ str_cli(FILE *fp,int sockfd)
         while (fgets(sendline,MAXLINE, fp) != NULL) {
                // while(1){
                         write(sockfd, sendline, strlen(sendline));
-                        file_updown(sendline,sockfd);
+                        if(*sendline=='2'||*sendline=='3'){file_updown(sendline,sockfd);}
+                        else{
                         if (n = read(sockfd, recvline, MAXLINE) == 0) {
 			        printf("str_cli:server terminated prematurely.\n");
                                 exit(1);
@@ -61,6 +62,7 @@ str_cli(FILE *fp,int sockfd)
   
                 int i=0;
 		fputs(recvline, stdout);
+                        }
                 printf("\n");
                 //}
                 
@@ -88,7 +90,7 @@ file_updown(char *sendline,int sockfd,char *recvline){
 			printf("FILE:%s Not Found\n",file_name_up);
 		}
 		else{
-			write(sockfd, sendline, strlen(sendline));
+			//write(sockfd, sendline, strlen(sendline));
 			bzero(filebuffer,0);
 			int length=0;
 			length = fread(filebuffer,sizeof(char),8000,fp1);

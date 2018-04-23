@@ -49,11 +49,17 @@ str_cli(FILE *fp,int sockfd)
 {
         ssize_t  n;
         char sendline[MAXLINE], recvline[MAXLINE+1];
-       
+        printf("--MENU--\n");
+        printf("1.list\n");
+        printf("2.download file. eg: down:text.txt\n");
+        printf("3.up file. eg: up:text.txt\n");
+        printf("4.else echo\n");
+        printf("--------\n");
         while (fgets(sendline,MAXLINE, fp) != NULL) {
                // while(1){
                         write(sockfd, sendline, strlen(sendline));
-                        if(*sendline=='2'||*sendline=='3'){file_updown(sendline,sockfd);}
+                        if((sendline[0]=='u'&&sendline[1]=='p')||(sendline[0]=='d'&&sendline[1]=='o'&&sendline[2]=='w'&&sendline[3]=='n'&&sendline[4]==':'))
+			{file_updown(sendline,sockfd);}
                         else{
                         if (n = read(sockfd, recvline, MAXLINE) == 0) {
 			        printf("str_cli:server terminated prematurely.\n");
@@ -75,14 +81,18 @@ file_updown(char *sendline,int sockfd,char *recvline){
         const char *s="1\n";
 	const char *s2="2\n";
 	const char *s3="resent.";
+	///char *u="up:";
+	//char *d="down:";
+        char errormessage[10]="error";
         char file_name[256];
         char buffer[MAXLINE+1];
 	char filebuffer[8000];
-        if(*sendline=='3'){
+        if(sendline[0]=='u'&&sendline[1]=='p'&&sendline[2]==':'){
+		//printf("\n�������ļ���:\n");
 		char file_name_up[256];
 		bzero(file_name_up,256);
-		for(int i=1;sendline[i]!='\n';i++){
-			file_name_up[i-1]=sendline[i];
+		for(int i=3;sendline[i]!='\n';i++){
+			file_name_up[i-3]=sendline[i];
 		}
 		printf("filename:%s\n",file_name_up);
 		FILE *fp1=fopen(file_name_up,"r");
@@ -106,13 +116,19 @@ file_updown(char *sendline,int sockfd,char *recvline){
 		}		
 	}
 	else{
-		if(*sendline=='2'){
-			        for(int i=1;sendline[i]!='\n';i++){
-			                file_name[i-1]=sendline[i];
+		if(sendline[0]=='d'&&sendline[1]=='o'&&sendline[2]=='w'&&sendline[3]=='n'&&sendline[4]==':'){
+				//printf("\n�������ļ���:\n");
+			        for(int i=5;sendline[i]!='\n';i++){
+			                file_name[i-5]=sendline[i];
                                 }
 			bzero(buffer,MAXLINE+1);
 			int length=0;
 		        length=read(sockfd, buffer, MAXLINE);
+                        printf("buffer=%s",buffer);
+                        if(strcmp(buffer,errormessage)==0){
+                                printf("FILE:%s Not Found\n",file_name);
+                                exit(1);
+                        }
                         FILE *fp=fopen(file_name,"w");
 			if(fp==NULL){
 				printf("file can not open\n");

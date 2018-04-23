@@ -122,10 +122,12 @@ str_echo(int sockfd)
 {
         ssize_t  n;
         char line[MAXLINE];
-        char *s="1";
+        char *s="list";
         char buffer[80];
         char *path;
         const char *s2="2\n";
+	//char *u="up:";
+	//char *d="down:";
 	char s3[1000]="resent.";
 	char file_name_up[256];
 	//const char *s4="udpserv1.c";
@@ -135,6 +137,7 @@ str_echo(int sockfd)
 	char filebuffer[8000];
 	char fileupbuffer[8000];
 	char filetap[1000]="Please enter the file name: ";
+        char errormessage[10]="error";
         path_n[1000]="\0";
         getcwd(buffer,sizeof(buffer));
 	//printf("dir is:%s\n",buffer);
@@ -164,18 +167,20 @@ str_echo(int sockfd)
                         write(sockfd,path_n,sizeof(path_n));
                         printf("send success\n");
                 }
-                else if(*line=='2'){
+                else if(line[0]=='d'&&line[1]=='o'&&line[2]=='w'&&line[3]=='n'&&line[4]==':'){
 			char file_name[256];
 			bzero(file_name,256);
 			//write(sockfd, s3, sizeof(s3));
 			
-			for(int i=1;line[i]!='\n';i++){
-				file_name[i-1]=line[i];
+			for(int i=5;line[i]!='\n';i++){
+				file_name[i-5]=line[i];
 			}
 			printf("change to %s\n",file_name);
 			FILE*fp = fopen(file_name,"r");
 			if(fp==NULL){
 				printf("FILE:%s Not Found\n",file_name);
+                                write(sockfd,errormessage,sizeof(errormessage));
+                                exit(1);
 			}
 			else{
                                 //write(sockfd,s3,sizeof(s3));
@@ -194,10 +199,10 @@ str_echo(int sockfd)
                         fclose(fp);
 			printf("File:%s Transfer Successful!\n",file_name);			
 		}
-		else if(*line=='3'){
+		else if(line[0]=='u'&&line[1]=='p'&&line[2]==':'){
 			//printf("intter 3\n");
-			for(int i=1;line[i]!='\n';i++){
-				file_name_up[i-1]=line[i];
+			for(int i=3;line[i]!='\n';i++){
+				file_name_up[i-3]=line[i];
 			}
 			FILE *fp1=fopen(file_name_up,"w");
 			if(fp1==NULL){
